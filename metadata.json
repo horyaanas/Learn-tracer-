@@ -1,0 +1,6 @@
+{
+  "name": "مسار التعلم",
+  "description": "تطبيق ويب تقدمي (PWA) لإدارة وتتبع الدورات التدريبية، يعمل بدون اتصال بالإنترنت.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
