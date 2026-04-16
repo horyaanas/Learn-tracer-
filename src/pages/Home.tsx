@@ -51,60 +51,74 @@ export const Home = () => {
   const overallProgress = stats.totalLessons > 0 ? Math.round((stats.completedLessons / stats.totalLessons) * 100) : 0;
 
   return (
-    <div className="p-4 md:p-0 space-y-6 md:grid md:grid-cols-[320px_1fr] md:gap-6 md:space-y-0">
-      {/* Stats Panel */}
-      <div className="flex flex-col gap-5">
+    <div className="p-4 md:p-0 space-y-6 flex flex-col pt-1">
+      {/* Search Bar - Moved to Top */}
+      <div className="relative">
+        <input 
+          type="text" 
+          placeholder="ابحث عن درس أو دورة..." 
+          className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none shadow-sm text-sm"
+        />
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+          <Search size={20} />
+        </div>
+      </div>
+
+      {/* Circular Stats Panel (Single Row) */}
+      <div className="flex items-center gap-4 w-full overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory">
+        
+        {/* Stat 1: Total Courses */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="snap-center shrink-0 w-[140px] h-[140px] bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center p-3"
         >
-          <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">الدورات التدريبية</div>
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.totalCourses}</div>
-          <div className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-            {stats.completedLessons} دروس مكتملة
+          <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-1">
+            <BookOpen size={20} />
           </div>
+          <div className="text-2xl font-bold text-slate-800 dark:text-white leading-none mb-1">
+            {stats.totalCourses}
+          </div>
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">دورات</div>
         </motion.div>
         
+        {/* Stat 2: Progress Ring */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700"
+          className="snap-center shrink-0 w-[140px] h-[140px] bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center relative p-3"
         >
-          <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">إجمالي التقدم</div>
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{overallProgress}%</div>
-          <div className="flex items-center gap-4 mt-3">
-            <div className="h-2 bg-blue-100 dark:bg-blue-900/30 rounded-full flex-grow overflow-hidden">
-              <div className="h-full bg-blue-600 dark:bg-blue-400 rounded-full transition-all duration-500" style={{ width: `${overallProgress}%` }}></div>
-            </div>
+          <svg className="absolute inset-0 w-full h-full -rotate-90">
+            <circle cx="70" cy="70" r="62" fill="none" stroke="currentColor" strokeWidth="6" className="text-slate-100 dark:text-slate-700" />
+            <circle cx="70" cy="70" r="62" fill="none" stroke="currentColor" strokeWidth="6" strokeDasharray={389.5} strokeDashoffset={typeof overallProgress === 'number' ? 389.5 - (389.5 * overallProgress) / 100 : 389.5} className="text-blue-500 transition-all duration-1000" />
+          </svg>
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 leading-none">
+            {overallProgress}%
           </div>
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">تَقَدُّم</div>
         </motion.div>
 
+        {/* Stat 3: Completed Lessons */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-bl from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 p-5 rounded-2xl shadow-md border border-slate-200 dark:border-slate-700 flex-grow"
+          className="snap-center shrink-0 w-[140px] h-[140px] bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-sm flex flex-col items-center justify-center text-center p-3 text-white"
         >
-          <div className="text-sm text-slate-500 dark:text-slate-400 mb-2">نشاط التعلم</div>
-          <div className="font-semibold text-base mb-2">استمر في التقدم!</div>
-          <div className="text-sm text-slate-500 dark:text-slate-400">
-            لقد أكملت {stats.completedLessons} من أصل {stats.totalLessons} درساً متاحاً.
+          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mb-1">
+            <Award size={20} />
           </div>
+          <div className="text-2xl font-bold leading-none mb-1">
+            {stats.completedLessons}
+          </div>
+          <div className="text-xs font-semibold text-blue-100">دروس مُنجزة</div>
         </motion.div>
+
       </div>
 
       {/* Content Area */}
       <div className="flex flex-col gap-6">
-        {/* Search Bar */}
-        <div className="relative">
-          <input 
-            type="text" 
-            placeholder="ابحث عن درس أو دورة..." 
-            className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none shadow-sm text-sm"
-          />
-        </div>
 
         {/* Upcoming Lessons */}
         <div>

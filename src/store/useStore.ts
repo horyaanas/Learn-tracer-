@@ -8,11 +8,15 @@ interface AppState {
   language: 'ar' | 'en';
   fontSize: 'small' | 'medium' | 'large';
   isLoading: boolean;
+  notificationsEnabled: boolean;
+  notificationTime: string;
   
   // Actions
   setTheme: (theme: 'light' | 'dark') => void;
   setLanguage: (lang: 'ar' | 'en') => void;
   setFontSize: (size: 'small' | 'medium' | 'large') => void;
+  setNotifications: (enabled: boolean) => void;
+  setNotificationTime: (time: string) => void;
   
   loadCourses: () => Promise<void>;
   importCourse: (course: Course, levels: Level[], lessons: Lesson[]) => Promise<void>;
@@ -29,10 +33,14 @@ export const useStore = create<AppState>()(
       language: 'ar',
       fontSize: 'medium',
       isLoading: false,
+      notificationsEnabled: false,
+      notificationTime: '20:00',
 
       setTheme: (theme) => set({ theme }),
       setLanguage: (language) => set({ language }),
       setFontSize: (fontSize) => set({ fontSize }),
+      setNotifications: (enabled) => set({ notificationsEnabled: enabled }),
+      setNotificationTime: (time) => set({ notificationTime: time }),
 
       loadCourses: async () => {
         set({ isLoading: true });

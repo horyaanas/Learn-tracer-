@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Upload, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import { parseExcelFile, transformParsedData, ParsedExcelData } from '../../lib/excel';
 import { useStore } from '../../store/useStore';

@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, Course, Level, Lesson } from '../lib/db';
 import { useStore } from '../store/useStore';
-import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock } from 'lucide-react';
+import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const CourseDetails = () => {
@@ -105,27 +105,30 @@ export const CourseDetails = () => {
           const isExpanded = expandedLevel === level.id;
 
           return (
-            <div key={level.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div key={level.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden transition-all hover:shadow-md">
               {/* Level Header */}
               <button 
                 onClick={() => isLevelUnlocked && setExpandedLevel(isExpanded ? null : level.id)}
-                className={`w-full p-4 flex items-center justify-between transition-colors ${!isLevelUnlocked ? 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-slate-900/50' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                className={`w-full p-5 sm:p-6 flex items-center justify-between transition-colors ${!isLevelUnlocked ? 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-slate-900/50' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
               >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${isLevelUnlocked ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>
-                    {isLevelUnlocked ? <span className="font-bold">{levelIndex + 1}</span> : <Lock size={18} />}
+                <div className="flex items-center gap-4">
+                  <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${isLevelUnlocked ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>
+                    {isLevelUnlocked ? levelIndex + 1 : <Lock size={20} />}
                   </div>
                   <div className="text-right">
-                    <h3 className="font-bold">{level.name}</h3>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      {completedInLevel} من {levelLessons.length} دروس مكتملة
+                    <h3 className="font-extrabold text-lg sm:text-xl text-slate-800 dark:text-white">{level.name}</h3>
+                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                       <span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
+                      {completedInLevel} من {levelLessons.length} دروس مُكتملة
                     </div>
                   </div>
                 </div>
                 {isLevelUnlocked && (
-                  <div className="flex items-center gap-3">
-                    <div className="text-sm font-medium text-blue-600 dark:text-blue-400">{levelProgress}%</div>
-                    <ChevronRight size={20} className={`text-slate-400 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
+                  <div className="flex items-center gap-4">
+                    <div className="hidden sm:block text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-lg">{levelProgress}% منجز</div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${isExpanded ? '-rotate-90 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'rotate-180'}`}>
+                      <ChevronRight size={20} />
+                    </div>
                   </div>
                 )}
               </button>
@@ -133,11 +136,11 @@ export const CourseDetails = () => {
               {/* Lessons List */}
               {isExpanded && isLevelUnlocked && (
                 <motion.div 
-                  initial={{ height: 0 }}
-                  animate={{ height: 'auto' }}
-                  className="border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  className="border-t border-slate-100 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-900/30"
                 >
-                  <div className="p-2 space-y-2">
+                  <div className="p-4 sm:p-6 space-y-4">
                     {levelLessons.map((lesson, lessonIndex) => {
                       const isUnlocked = lessonIndex === 0 ? isLevelUnlocked : levelLessons[lessonIndex - 1].completed;
                       return (
@@ -161,17 +164,12 @@ export const CourseDetails = () => {
   );
 };
 
-const LessonItem = ({ 
-  lesson, 
-  isUnlocked, 
-  onToggleComplete, 
-  onStartLesson 
-}: { 
+const LessonItem: React.FC<{ 
   lesson: Lesson; 
   isUnlocked: boolean; 
   onToggleComplete: (l: Lesson) => void; 
   onStartLesson: (l: Lesson) => void; 
-}) => {
+}> = ({ lesson, isUnlocked, onToggleComplete, onStartLesson }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [showWarning, setShowWarning] = useState<string | null>(null);
 
@@ -226,44 +224,46 @@ const LessonItem = ({
     : 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800';
 
   return (
-    <div className={`p-4 xl:p-5 rounded-2xl flex flex-col gap-4 transition-colors ${lesson.completed ? 'bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 shadow-sm' : isUnlocked ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm' : 'opacity-60 grayscale border border-dashed border-slate-300 dark:border-slate-700'}`}>
+    <div className={`p-5 sm:p-6 rounded-[24px] flex flex-col gap-5 transition-all duration-300 ${lesson.completed ? 'bg-gradient-to-br from-green-50 to-emerald-50/30 dark:from-green-900/10 dark:to-emerald-900/5 border border-green-200 dark:border-green-900/40 shadow-sm' : isUnlocked ? 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg' : 'opacity-60 grayscale border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50'}`}>
       <div className="flex items-start gap-4">
         <button 
           onClick={handleToggle}
           disabled={!isUnlocked}
           title={!lesson.startedAt ? 'يجب فتح الدرس أولاً' : remainingSeconds > 0 ? 'انتظر انتهاء الوقت' : 'تحديد كمكتمل'}
-          className={`shrink-0 mt-1 w-9 h-9 rounded-full flex items-center justify-center border-2 transition-colors duration-300 outline-none focus:ring-4 focus:ring-blue-500/20 ${buttonClasses}`}
+          className={`shrink-0 mt-1 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 outline-none focus:ring-4 focus:ring-blue-500/20 ${buttonClasses}`}
         >
-          {lesson.completed ? <CheckCircle2 size={20} /> : 
+          {lesson.completed ? <CheckCircle2 size={24} /> : 
            (lesson.startedAt && remainingSeconds > 0) ? (
-             <span className="text-[11px] font-bold tracking-tighter" dir="ltr">{formatTime(remainingSeconds)}</span>
+             <span className="text-[12px] font-bold tracking-tighter" dir="ltr">{formatTime(remainingSeconds)}</span>
            ) : (
-             isUnlocked && lesson.startedAt && remainingSeconds === 0 ? <CheckCircle2 size={20} className="opacity-60" /> : null
+             isUnlocked && lesson.startedAt && remainingSeconds === 0 ? <CheckCircle2 size={24} className="opacity-60" /> : null
            )
           }
         </button>
         
-        <div className="flex-1 min-w-0">
-          <h4 className={`font-bold text-lg md:text-xl leading-tight mb-2 ${lesson.completed ? 'text-green-800 dark:text-green-400' : 'text-slate-800 dark:text-white'}`}>
+        <div className="flex-1 min-w-0 pt-0.5">
+          <h4 className={`font-bold text-xl md:text-2xl leading-snug mb-3 ${lesson.completed ? 'text-green-800 dark:text-green-400' : 'text-slate-800 dark:text-white'}`}>
             {lesson.name}
           </h4>
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium">
-            <Clock size={16} />
+          <div className="flex items-center gap-2 text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-900/50 w-fit px-3 py-1.5 rounded-lg">
+            <Clock size={18} />
             <span>{lesson.duration || 'بدون مدة'}</span>
           </div>
           {showWarning && (
             <motion.div 
-              initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-3 py-2 px-3 text-xs md:text-sm font-semibold rounded-lg text-orange-700 bg-orange-100 dark:text-orange-300 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-900/50"
+              initial={{ opacity: 0, height: 0 }} 
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mt-4 py-3 px-4 text-sm font-semibold rounded-xl text-orange-800 bg-orange-100 dark:text-orange-300 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-900/50 flex items-center gap-2"
             >
-              • {showWarning}
+              <Info size={18} className="shrink-0" />
+              <span>{showWarning}</span>
             </motion.div>
           )}
         </div>
 
         {!isUnlocked && (
-          <div className="shrink-0 w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-slate-700/50 rounded-full text-slate-400">
-            <Lock size={18} />
+          <div className="shrink-0 w-12 h-12 flex items-center justify-center bg-slate-200/50 dark:bg-slate-700/50 rounded-full text-slate-400">
+            <Lock size={20} />
           </div>
         )}
       </div>
@@ -274,10 +274,10 @@ const LessonItem = ({
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => { if (!lesson.startedAt) onStartLesson(lesson); setShowWarning(null); }}
-          className={`w-full flex items-center justify-center gap-2 py-3 mt-2 font-bold rounded-xl transition-all shadow-sm ${lesson.startedAt ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-100 dark:border-indigo-900/50' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'}`}
+          className={`w-full flex items-center justify-center gap-3 py-4 mt-2 font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-[0.98] ${lesson.startedAt ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/50' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25'}`}
         >
-          <PlayCircle size={22} className={lesson.startedAt ? '' : 'animate-pulse'} />
-          <span>{lesson.startedAt ? 'العودة للدرس 🏃‍♂️' : 'بدء الدرس الآن 🚀'}</span>
+          <PlayCircle size={26} className={lesson.startedAt ? '' : 'animate-pulse'} />
+          <span>{lesson.startedAt ? 'متابعة الدرس / العرض' : 'عرض الدرس الآن'}</span>
         </a>
       )}
     </div>

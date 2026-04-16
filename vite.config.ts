@@ -16,9 +16,17 @@ export default defineConfig(({mode}) => {
           name: 'مسار التعلم',
           short_name: 'مسار',
           description: 'تطبيق لإدارة وتتبع الدورات التدريبية',
-          theme_color: '#ffffff',
+          theme_color: '#2563eb',
           display: 'standalone',
-          background_color: '#ffffff'
+          background_color: '#f8fafc',
+          icons: [
+            {
+              src: '/icon.svg',
+              sizes: '192x192 512x512',
+              type: 'image/svg+xml',
+              purpose: 'any maskable'
+            }
+          ]
         }
       })
     ],

@@ -86,17 +86,17 @@ export const db = {
     await tx.objectStore('courses').delete(id);
     
     const levelsIndex = tx.objectStore('levels').index('by-course');
-    let cursor = await levelsIndex.openCursor(IDBKeyRange.only(id));
-    while (cursor) {
-      await cursor.delete();
-      cursor = await cursor.continue();
+    let levelCursor = await levelsIndex.openCursor(IDBKeyRange.only(id));
+    while (levelCursor) {
+      await levelCursor.delete();
+      levelCursor = await levelCursor.continue();
     }
 
     const lessonsIndex = tx.objectStore('lessons').index('by-course');
-    cursor = await lessonsIndex.openCursor(IDBKeyRange.only(id));
-    while (cursor) {
-      await cursor.delete();
-      cursor = await cursor.continue();
+    let lessonCursor = await lessonsIndex.openCursor(IDBKeyRange.only(id));
+    while (lessonCursor) {
+      await lessonCursor.delete();
+      lessonCursor = await lessonCursor.continue();
     }
     await tx.done;
   },

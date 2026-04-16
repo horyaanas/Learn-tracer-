@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Minimal sleek gradients -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#818cf8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  
+  <rect width="512" height="512" rx="112" fill="url(#bgGradient)"/>
+  
+  <!-- Outer glowing ring -->
+  <circle cx="256" cy="256" r="140" fill="url(#glow)"/>
+  
+  <!-- Sleek Book / Path representation -->
+  <path d="M 180 340 L 332 340 C 354 340 372 322 372 300 V 210 C 372 188 354 170 332 170 L 220 170 L 140 240 L 180 240 Z" fill="white" opacity="0.9"/>
+  <path d="M 140 380 L 300 380 L 340 340 L 180 340 Z" fill="#93c5fd" opacity="0.8"/>
+  <circle cx="256" cy="256" r="40" fill="#2563eb"/>
+  <circle cx="256" cy="256" r="16" fill="white"/>
+</svg>
