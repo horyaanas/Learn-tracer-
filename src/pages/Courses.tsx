@@ -4,9 +4,11 @@ import { db, Course } from '../lib/db';
 import { Link } from 'react-router-dom';
 import { Book, Clock, ChevronLeft, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation, LanguageCode } from '../lib/i18n';
 
 export const Courses = () => {
-  const { courses, loadCourses, deleteCourse } = useStore();
+  const { courses, loadCourses, deleteCourse, language } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
   const [courseStats, setCourseStats] = useState<Record<string, { total: number, completed: number, levels: number }>>({});
 
   useEffect(() => {
@@ -34,19 +36,19 @@ export const Courses = () => {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
-    if (window.confirm('هل أنت متأكد من حذف هذه الدورة؟')) {
+    if (window.confirm(t('deleteCourseConfirm'))) {
       await deleteCourse(id);
     }
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <h2 className="text-xl font-bold mb-4">دوراتي</h2>
+    <div className="p-4 space-y-4 pt-1">
+      <h2 className="text-xl font-bold mb-4">{t('myCourses')}</h2>
       
       {courses.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
           <Book size={48} className="mx-auto mb-4 opacity-20" />
-          <p>لا توجد دورات حالياً. قم بإضافة دورة جديدة للبدء.</p>
+          <p>{t('emptyCourses')}. {t('emptyCoursesDesc')}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -83,18 +85,18 @@ export const Courses = () => {
                   <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-4">
                     <div className="flex items-center gap-1">
                       <Book size={16} />
-                      <span>{stats.levels} مستويات</span>
+                      <span>{stats.levels}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock size={16} />
-                      <span>{stats.total} دروس</span>
+                      <span>{stats.total}</span>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-500">نسبة الإنجاز</span>
+                      <span className="text-slate-500">{t('progressTtl')}</span>
                       <span className="text-blue-600 dark:text-blue-400">{progress}%</span>
                     </div>
                     <div className="h-2 bg-blue-100 dark:bg-blue-900/30 rounded-full overflow-hidden">

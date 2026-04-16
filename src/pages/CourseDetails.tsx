@@ -4,11 +4,13 @@ import { db, Course, Level, Lesson } from '../lib/db';
 import { useStore } from '../store/useStore';
 import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation, LanguageCode } from '../lib/i18n';
 
 export const CourseDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toggleLessonCompletion, startLesson } = useStore();
+  const { toggleLessonCompletion, startLesson, language } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
   
   const [course, setCourse] = useState<Course | null>(null);
   const [levels, setLevels] = useState<Level[]>([]);
@@ -80,7 +82,7 @@ export const CourseDetails = () => {
       <div className="bg-white dark:bg-slate-800 text-slate-800 dark:text-white p-4 pt-6 pb-6 sticky top-0 z-10 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center gap-3 mb-2">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors">
-            <ChevronRight size={24} className="rotate-180" />
+            <ChevronRight size={24} className={language === 'ar' ? 'rotate-180' : ''} />
           </button>
           <h1 className="font-bold text-xl truncate">{course.name}</h1>
         </div>
@@ -119,14 +121,14 @@ export const CourseDetails = () => {
                     <h3 className="font-extrabold text-lg sm:text-xl text-slate-800 dark:text-white">{level.name}</h3>
                     <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                        <span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
-                      {completedInLevel} من {levelLessons.length} دروس مُكتملة
+                      {t('lessonsCompleted', { completed: completedInLevel, total: levelLessons.length })}
                     </div>
                   </div>
                 </div>
                 {isLevelUnlocked && (
                   <div className="flex items-center gap-4">
-                    <div className="hidden sm:block text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-lg">{levelProgress}% منجز</div>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${isExpanded ? '-rotate-90 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'rotate-180'}`}>
+                    <div className="hidden sm:block text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-lg">{t('levelCompleted', { progress: levelProgress })}</div>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${isExpanded ? '-rotate-90 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : (language === 'ar' ? 'rotate-180' : '')}`}>
                       <ChevronRight size={20} />
                     </div>
                   </div>
@@ -172,6 +174,8 @@ const LessonItem: React.FC<{
 }> = ({ lesson, isUnlocked, onToggleComplete, onStartLesson }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [showWarning, setShowWarning] = useState<string | null>(null);
+  const { language } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
 
   // Extract duration: require 10% of lesson time logic, minimum 30 seconds for testability limits
   const durationMatch = lesson.duration ? lesson.duration.match(/\d+/) : null;
@@ -195,12 +199,12 @@ const LessonItem: React.FC<{
   const handleToggle = () => {
     if (!isUnlocked) return;
     if (!lesson.startedAt) {
-      setShowWarning('لضمان الاستفادة، يرجى فتح الدرس وبدء المذاكرة أولاً.');
+      setShowWarning(t('warningOpenFirst'));
       setTimeout(() => setShowWarning(null), 4000);
       return;
     }
     if (remainingSeconds > 0) {
-      setShowWarning(`يرجى الاستمرار في دراسة الدرس. يتبقى ${formatTime(remainingSeconds)}`);
+      setShowWarning(t('warningStudyTime', { time: formatTime(remainingSeconds) }));
       setTimeout(() => setShowWarning(null), 4000);
       return;
     }
@@ -229,7 +233,7 @@ const LessonItem: React.FC<{
         <button 
           onClick={handleToggle}
           disabled={!isUnlocked}
-          title={!lesson.startedAt ? 'يجب فتح الدرس أولاً' : remainingSeconds > 0 ? 'انتظر انتهاء الوقت' : 'تحديد كمكتمل'}
+          title={!lesson.startedAt ? t('warningOpenFirst') : remainingSeconds > 0 ? t('warningStudyTime', {time: formatTime(remainingSeconds)}) : ''}
           className={`shrink-0 mt-1 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 outline-none focus:ring-4 focus:ring-blue-500/20 ${buttonClasses}`}
         >
           {lesson.completed ? <CheckCircle2 size={24} /> : 
@@ -247,7 +251,7 @@ const LessonItem: React.FC<{
           </h4>
           <div className="flex items-center gap-2 text-sm md:text-base text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-900/50 w-fit px-3 py-1.5 rounded-lg">
             <Clock size={18} />
-            <span>{lesson.duration || 'بدون مدة'}</span>
+            <span>{lesson.duration || t('noDuration')}</span>
           </div>
           {showWarning && (
             <motion.div 
@@ -277,7 +281,7 @@ const LessonItem: React.FC<{
           className={`w-full flex items-center justify-center gap-3 py-4 mt-2 font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-[0.98] ${lesson.startedAt ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/50' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25'}`}
         >
           <PlayCircle size={26} className={lesson.startedAt ? '' : 'animate-pulse'} />
-          <span>{lesson.startedAt ? 'متابعة الدرس / العرض' : 'عرض الدرس الآن'}</span>
+          <span>{lesson.startedAt ? t('continueViewing') : t('viewLessonNow')}</span>
         </a>
       )}
     </div>

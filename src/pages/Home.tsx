@@ -4,9 +4,11 @@ import { db, Lesson, Course } from '../lib/db';
 import { PlayCircle, Award, BookOpen, Search, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation, LanguageCode } from '../lib/i18n';
 
 export const Home = () => {
-  const { courses, loadCourses } = useStore();
+  const { courses, loadCourses, language } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
   const [upcomingLessons, setUpcomingLessons] = useState<{lesson: Lesson, course: Course}[]>([]);
   const [stats, setStats] = useState({ totalCourses: 0, completedLessons: 0, totalLessons: 0 });
 
@@ -56,10 +58,10 @@ export const Home = () => {
       <div className="relative">
         <input 
           type="text" 
-          placeholder="ابحث عن درس أو دورة..." 
+          placeholder={t('searchPlaceholder')} 
           className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500/20 outline-none shadow-sm text-sm"
         />
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+        <div className={`absolute top-1/2 -translate-y-1/2 text-slate-400 ${language === 'ar' ? 'left-4' : 'right-4'}`}>
           <Search size={20} />
         </div>
       </div>
@@ -79,7 +81,7 @@ export const Home = () => {
           <div className="text-2xl font-bold text-slate-800 dark:text-white leading-none mb-1">
             {stats.totalCourses}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">دورات</div>
+          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('totalCourses')}</div>
         </motion.div>
         
         {/* Stat 2: Progress Ring */}
@@ -96,7 +98,7 @@ export const Home = () => {
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 leading-none">
             {overallProgress}%
           </div>
-          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">تَقَدُّم</div>
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">{t('progress')}</div>
         </motion.div>
 
         {/* Stat 3: Completed Lessons */}
@@ -112,7 +114,7 @@ export const Home = () => {
           <div className="text-2xl font-bold leading-none mb-1">
             {stats.completedLessons}
           </div>
-          <div className="text-xs font-semibold text-blue-100">دروس مُنجزة</div>
+          <div className="text-xs font-semibold text-blue-100">{t('completedM')}</div>
         </motion.div>
 
       </div>
@@ -123,10 +125,10 @@ export const Home = () => {
         {/* Upcoming Lessons */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold">الدروس القادمة</h2>
+            <h2 className="text-lg font-bold">{t('upcomingLessons')}</h2>
             {upcomingLessons.length > 0 && (
               <Link to="/courses" className="text-sm text-blue-600 dark:text-blue-400 font-medium cursor-pointer">
-                عرض الكل
+                {t('viewAll')}
               </Link>
             )}
           </div>
@@ -136,9 +138,9 @@ export const Home = () => {
               <div className="w-16 h-16 bg-slate-50 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
                 <PlayCircle size={32} />
               </div>
-              <h3 className="font-medium mb-1">لا يوجد دروس قادمة</h3>
+              <h3 className="font-medium mb-1">{t('noUpcomingLessons')}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                قم بإضافة دورة جديدة للبدء في التعلم.
+                {t('emptyCoursesDesc')}
               </p>
             </div>
           ) : (
@@ -158,14 +160,11 @@ export const Home = () => {
                       </span>
                       <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded flex items-center gap-1">
                         <Clock size={12} />
-                        {lesson.duration || 'غير محدد'}
+                        {lesson.duration || t('noDuration')}
                       </span>
                     </div>
                     
                     <span className="font-bold text-lg mt-1">{lesson.name}</span>
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
-                      المستوى {lesson.level}
-                    </span>
                   </div>
 
                   <Link 
@@ -173,7 +172,7 @@ export const Home = () => {
                     className="w-full flex justify-center items-center gap-2 bg-blue-600 text-white border-none py-3 rounded-lg text-sm font-semibold cursor-pointer hover:bg-blue-700 transition-colors"
                   >
                     <PlayCircle size={18} />
-                    متابعة التعلّم
+                    {t('continueLesson')}
                   </Link>
                 </motion.div>
               ))}

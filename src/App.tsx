@@ -11,10 +11,12 @@ import { CourseDetails } from './pages/CourseDetails';
 import { Settings } from './pages/Settings';
 import { useStore } from './store/useStore';
 import { useEffect } from 'react';
+import { useTranslation, LanguageCode } from './lib/i18n';
 
 // Setup background notification check
 const useNotifications = () => {
-  const { notificationsEnabled, notificationTime } = useStore();
+  const { notificationsEnabled, notificationTime, language } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
 
   useEffect(() => {
     if (!notificationsEnabled || !notificationTime || !('Notification' in window) || Notification.permission !== 'granted') return;
@@ -29,8 +31,8 @@ const useNotifications = () => {
       const today = now.toDateString();
 
       if (currentTime === notificationTime && lastNotifiedDate !== today) {
-        new Notification('وقت التعلم!', {
-          body: 'حان وقت إكمال دروسك المجدولة اليوم.',
+        new Notification(t('notificationsTitle'), {
+          body: t('notificationsBody', { time: notificationTime }),
           icon: '/icon.svg'
         });
         localStorage.setItem('lastNotifiedDate', today);

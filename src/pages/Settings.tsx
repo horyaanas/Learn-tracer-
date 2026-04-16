@@ -2,11 +2,13 @@ import { useStore } from '../store/useStore';
 import { Moon, Sun, Type, Globe, Info, ChevronRight, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useTranslation, LanguageCode } from '../lib/i18n';
 
 export const Settings = () => {
   const { theme, setTheme, language, setLanguage, fontSize, setFontSize, notificationsEnabled, setNotifications, notificationTime, setNotificationTime } = useStore();
   const navigate = useNavigate();
   const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>('default');
+  const { t } = useTranslation(language as LanguageCode);
 
   useEffect(() => {
     if ('Notification' in window) {
@@ -19,7 +21,7 @@ export const Settings = () => {
 
   const toggleNotifications = async () => {
     if (!('Notification' in window)) {
-      alert('متصفحك لا يدعم الإشعارات');
+      alert(t('browserNotSupported'));
       return;
     }
     
@@ -29,15 +31,15 @@ export const Settings = () => {
         setNotificationStatus(permission);
         if (permission === 'granted') {
           setNotifications(true);
-          new Notification('تم تفعيل الإشعارات', {
-            body: `سيتم التذكير يومياً في ${notificationTime}`,
+          new Notification(t('notificationsEnabled'), {
+            body: t('notificationsBody', { time: notificationTime }),
             icon: '/icon.svg'
           });
         }
       } else {
         setNotifications(true);
-        new Notification('تم تفعيل الإشعارات', {
-          body: `سيتم التذكير يومياً في ${notificationTime}`,
+        new Notification(t('notificationsEnabled'), {
+          body: t('notificationsBody', { time: notificationTime }),
           icon: '/icon.svg'
         });
       }
@@ -50,15 +52,15 @@ export const Settings = () => {
     <div className="p-4 pb-24">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-          <ChevronRight size={24} className="rotate-180" />
+          <ChevronRight size={24} className={language === 'ar' ? 'rotate-180' : ''} />
         </button>
-        <h2 className="text-xl font-bold">الإعدادات</h2>
+        <h2 className="text-xl font-bold">{t('settingsTitle')}</h2>
       </div>
 
       <div className="space-y-6">
         {/* Appearance */}
         <section>
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">المظهر</h3>
+          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">{t('appearance')}</h3>
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
             
             <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700">
@@ -66,13 +68,13 @@ export const Settings = () => {
                 <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
                   {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
-                <span className="font-medium">الوضع الليلي</span>
+                <span className="font-medium">{t('darkMode')}</span>
               </div>
               <button 
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 className={`w-12 h-6 rounded-full transition-colors relative ${theme === 'dark' ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-600'}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${theme === 'dark' ? 'left-0.5 translate-x-0' : 'right-0.5 translate-x-0'}`} />
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${theme === 'dark' ? (language === 'ar' ? 'left-0.5' : 'translate-x-[24px] left-0.5') : (language === 'ar' ? 'right-0.5' : 'translate-x-0 left-0.5')}`} />
               </button>
             </div>
 
@@ -81,16 +83,16 @@ export const Settings = () => {
                 <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
                   <Type size={20} />
                 </div>
-                <span className="font-medium">حجم الخط</span>
+                <span className="font-medium">{t('fontSizeTitle')}</span>
               </div>
               <select 
                 value={fontSize}
                 onChange={(e) => setFontSize(e.target.value as any)}
                 className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none"
               >
-                <option value="small">صغير</option>
-                <option value="medium">متوسط</option>
-                <option value="large">كبير</option>
+                <option value="small">{t('fontSmall')}</option>
+                <option value="medium">{t('fontMedium')}</option>
+                <option value="large">{t('fontLarge')}</option>
               </select>
             </div>
 
@@ -99,7 +101,7 @@ export const Settings = () => {
 
         {/* Notifications */}
         <section>
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">الإشعارات والتذكير</h3>
+          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">{t('notificationsTitle')}</h3>
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-700">
               <div className="flex flex-col gap-1">
@@ -107,22 +109,22 @@ export const Settings = () => {
                   <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
                     <Bell size={20} />
                   </div>
-                  <span className="font-medium">تفعيل التذكير اليومي</span>
+                  <span className="font-medium">{t('notificationsInfo')}</span>
                 </div>
                 {notificationStatus === 'denied' && (
-                  <span className="text-xs text-red-500 pr-12">تم حظر الإشعارات من المتصفح</span>
+                  <span className="text-xs text-red-500 pr-12">{t('notificationsBlocked')}</span>
                 )}
               </div>
               <button 
                 onClick={toggleNotifications}
                 className={`w-12 h-6 rounded-full transition-colors relative ${notificationsEnabled ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-600'}`}
               >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${notificationsEnabled ? (language === 'ar' ? 'left-0.5' : 'right-0.5') : (language === 'ar' ? 'right-0.5' : 'left-0.5')}`} />
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${notificationsEnabled ? (language === 'ar' ? 'left-0.5' : 'translate-x-[24px] left-0.5') : (language === 'ar' ? 'right-0.5' : 'translate-x-0 left-0.5')}`} />
               </button>
             </div>
             
             <div className={`flex items-center justify-between p-4 transition-opacity ${!notificationsEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
-              <span className="pr-12 text-slate-600 dark:text-slate-400">وقت التذكير</span>
+              <span className="pr-12 text-slate-600 dark:text-slate-400">{t('reminderTime')}</span>
               <input 
                 type="time" 
                 value={notificationTime}
@@ -136,22 +138,22 @@ export const Settings = () => {
 
         {/* Language */}
         <section>
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">اللغة</h3>
+          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-3 px-2 uppercase tracking-wider">{t('language')}</h3>
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
                   <Globe size={20} />
                 </div>
-                <span className="font-medium">لغة التطبيق</span>
+                <span className="font-medium">{t('language')}</span>
               </div>
               <select 
                 value={language}
                 onChange={(e) => setLanguage(e.target.value as any)}
                 className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm outline-none"
               >
-                <option value="ar">العربية</option>
-                <option value="en">English</option>
+                <option value="ar">{t('arabic')}</option>
+                <option value="en">{t('english')}</option>
               </select>
             </div>
           </div>

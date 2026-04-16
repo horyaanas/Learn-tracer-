@@ -3,11 +3,13 @@ import { Home, BookOpen, Plus, Settings } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { useState } from 'react';
 import { ImportModal } from '../course/ImportModal';
+import { useTranslation, LanguageCode } from '../../lib/i18n';
 
 export const Layout = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const location = useLocation();
   const { theme, language, fontSize } = useStore();
+  const { t } = useTranslation(language as LanguageCode);
 
   const isRtl = language === 'ar';
 
@@ -31,14 +33,15 @@ export const Layout = () => {
           <button 
             onClick={() => setIsImportModalOpen(true)}
             className="bg-blue-600 text-white border-none px-4 py-2 md:px-5 md:py-2.5 rounded-lg font-semibold flex items-center gap-2 hover:bg-blue-700 transition-colors shadow-sm"
-            aria-label="إضافة دورة"
+            aria-label={t('addCourse')}
           >
             <Plus size={20} />
-            <span className="hidden sm:inline">استيراد من Excel</span>
+            <span className="hidden sm:inline">Excel</span>
           </button>
           <Link 
             to="/settings"
             className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+            aria-label={t('settings')}
           >
             <Settings size={20} />
           </Link>
@@ -59,14 +62,21 @@ export const Layout = () => {
           className={`flex flex-col items-center py-3 px-6 ${location.pathname === '/' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
           <Home size={24} className="mb-1" />
-          <span className="text-xs font-medium">الرئيسية</span>
+          <span className="text-[10px] font-bold">{t('home')}</span>
         </Link>
         <Link 
           to="/courses" 
           className={`flex flex-col items-center py-3 px-6 ${location.pathname.startsWith('/courses') ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}
         >
           <BookOpen size={24} className="mb-1" />
-          <span className="text-xs font-medium">الدورات</span>
+          <span className="text-[10px] font-bold">{t('courses')}</span>
+        </Link>
+        <Link 
+          to="/settings" 
+          className={`flex flex-col items-center py-3 px-6 ${location.pathname === '/settings' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400'}`}
+        >
+          <Settings size={24} className="mb-1" />
+          <span className="text-[10px] font-bold">{t('settings')}</span>
         </Link>
       </nav>
 
