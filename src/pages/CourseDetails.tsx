@@ -3,8 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db, Course, Level, Lesson } from '../lib/db';
 import { useStore } from '../store/useStore';
 import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, Info, Edit2, Trash2, Check, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation, LanguageCode } from '../lib/i18n';
+
+const getYouTubeId = (url: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2] && match[2].length === 11) ? match[2] : null;
+};
 
 export const CourseDetails = () => {
   const { id } = useParams<{ id: string }>();
