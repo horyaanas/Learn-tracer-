@@ -90,6 +90,13 @@ export const translations = {
     // Lesson Warning
     finishLessonFirst: 'لضمان الاستفادة، يرجى فتح الدرس وبدء المذاكرة أولاً.',
     keepStudying: 'يرجى الاستمرار في دراسة الدرس. يتبقى {time}',
+
+    // Exit Modal
+    exitConfirmTitle: 'تأكيد الخروج',
+    exitConfirmDesc: 'هل أنت متأكد أنك تريد الخروج من التطبيق؟',
+    exitOptions: 'خيارات',
+    exit: 'خروج',
+    stay: 'البقاء',
   },
   en: {
     // Navigation & Layout
@@ -182,6 +189,13 @@ export const translations = {
     // Lesson Warning
     finishLessonFirst: 'To ensure benefit, please open the lesson and start studying first.',
     keepStudying: 'Please continue studying. Remaining: {time}',
+
+    // Exit Modal
+    exitConfirmTitle: 'Confirm Exit',
+    exitConfirmDesc: 'Are you sure you want to exit the app?',
+    exitOptions: 'Options',
+    exit: 'Exit',
+    stay: 'Stay',
   }
 };
 
