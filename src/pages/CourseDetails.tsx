@@ -21,6 +21,7 @@ export const CourseDetails = () => {
   const [editingLevelId, setEditingLevelId] = useState<string | null>(null);
   const [editLevelName, setEditLevelName] = useState('');
   const [confirmDeleteLevelId, setConfirmDeleteLevelId] = useState<string | null>(null);
+  const [activeVideo, setActiveVideo] = useState<{url: string, title: string} | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
@@ -240,6 +241,7 @@ export const CourseDetails = () => {
                           isUnlocked={isUnlocked} 
                           onToggleComplete={handleToggleCompletion} 
                           onStartLesson={handleStartLesson} 
+                          onPlayVideo={(url, title) => setActiveVideo({url, title})}
                         />
                       );
                     })}
@@ -250,6 +252,39 @@ export const CourseDetails = () => {
           );
         })}
       </div>
+
+      {/* Video Modal overlay */}
+      <AnimatePresence>
+        {activeVideo && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col"
+          >
+            <div className="flex items-center justify-between p-4 sm:p-6 text-white shrink-0">
+              <h3 className="font-bold text-lg sm:text-xl truncate ml-4" dir="auto">{activeVideo.title}</h3>
+              <button 
+                onClick={() => setActiveVideo(null)} 
+                className="p-3 bg-white/10 hover:bg-red-500/80 hover:text-white text-slate-300 rounded-full transition-colors focus:outline-none"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="flex-1 w-full flex items-center justify-center p-0 sm:p-6 pb-safe">
+              <div className="w-full h-full sm:h-auto sm:aspect-video sm:max-w-6xl relative sm:rounded-2xl overflow-hidden bg-black shadow-2xl flex items-center">
+                 <iframe 
+                   src={`https://www.youtube.com/embed/${getYouTubeId(activeVideo.url)}?autoplay=1&rel=0&modestbranding=1`} 
+                   title={activeVideo.title}
+                   className="absolute top-0 left-0 w-full h-full border-0 select-none"
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                   allowFullScreen
+                 />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -259,7 +294,8 @@ const LessonItem: React.FC<{
   isUnlocked: boolean; 
   onToggleComplete: (l: Lesson) => void; 
   onStartLesson: (l: Lesson) => void; 
-}> = ({ lesson, isUnlocked, onToggleComplete, onStartLesson }) => {
+  onPlayVideo: (url: string, title: string) => void;
+}> = ({ lesson, isUnlocked, onToggleComplete, onStartLesson, onPlayVideo }) => {
   const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
   const [showWarning, setShowWarning] = useState<string | null>(null);
   const { language } = useStore();
@@ -360,18 +396,28 @@ const LessonItem: React.FC<{
         )}
       </div>
 
-      {isUnlocked && lesson.url && (
-        <a 
-          href={lesson.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => { if (!lesson.startedAt) onStartLesson(lesson); setShowWarning(null); }}
-          className={`w-full flex items-center justify-center gap-3 py-4 mt-2 font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-[0.98] ${lesson.startedAt ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/50' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25'}`}
-        >
-          <PlayCircle size={26} className={lesson.startedAt ? '' : 'animate-pulse'} />
-          <span>{lesson.startedAt ? t('continueViewing') : t('viewLessonNow')}</span>
-        </a>
-      )}
+      {isUnlocked && lesson.url && (() => {
+        const videoId = getYouTubeId(lesson.url);
+        return (
+          <a 
+            href={videoId ? '#' : lesson.url}
+            target={videoId ? '_self' : '_blank'}
+            rel="noopener noreferrer"
+            onClick={(e) => { 
+              if (!lesson.startedAt) onStartLesson(lesson); 
+              setShowWarning(null); 
+              if (videoId) {
+                e.preventDefault();
+                onPlayVideo(lesson.url, lesson.name);
+              }
+            }}
+            className={`w-full flex items-center justify-center gap-3 py-4 mt-2 font-bold text-lg rounded-2xl transition-all shadow-sm active:scale-[0.98] ${lesson.startedAt ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50 border border-indigo-200 dark:border-indigo-800/50' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-500/25'}`}
+          >
+            <PlayCircle size={26} className={lesson.startedAt ? '' : 'animate-pulse'} />
+            <span>{lesson.startedAt ? t('continueViewing') : t('viewLessonNow')}</span>
+          </a>
+        );
+      })()}
     </div>
   );
 };
