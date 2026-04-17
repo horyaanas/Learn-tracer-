@@ -80,6 +80,10 @@ export const db = {
     const db = await initDB();
     await db.put('courses', course);
   },
+  async updateCourse(course: Course) {
+    const db = await initDB();
+    await db.put('courses', course);
+  },
   async deleteCourse(id: string) {
     const db = await initDB();
     const tx = db.transaction(['courses', 'levels', 'lessons'], 'readwrite');
@@ -100,9 +104,38 @@ export const db = {
     }
     await tx.done;
   },
+  async deleteLevel(id: string) {
+    const db = await initDB();
+    const tx = db.transaction(['levels', 'lessons'], 'readwrite');
+    await tx.objectStore('levels').delete(id);
+    
+    const lessonsIndex = tx.objectStore('lessons').index('by-level');
+    let lessonCursor = await lessonsIndex.openCursor(IDBKeyRange.only(id));
+    while (lessonCursor) {
+      await lessonCursor.delete();
+      lessonCursor = await lessonCursor.continue();
+    }
+    await tx.done;
+  },
+  async updateLevel(level: Level) {
+    const db = await initDB();
+    await db.put('levels', level);
+  },
+  async deleteLesson(id: string) {
+    const db = await initDB();
+    await db.delete('lessons', id);
+  },
   async getLevelsByCourse(courseId: string) {
     const db = await initDB();
     return db.getAllFromIndex('levels', 'by-course', courseId);
+  },
+  async getLevel(id: string) {
+    const db = await initDB();
+    return db.get('levels', id);
+  },
+  async getLesson(id: string) {
+    const db = await initDB();
+    return db.get('lessons', id);
   },
   async addLevels(levels: Level[]) {
     const db = await initDB();

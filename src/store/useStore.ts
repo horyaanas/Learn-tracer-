@@ -19,8 +19,12 @@ interface AppState {
   setNotificationTime: (time: string) => void;
   
   loadCourses: () => Promise<void>;
-  importCourse: (course: Course, levels: Level[], lessons: Lesson[]) => Promise<void>;
+  importCourse: (course: Course | null, levels: Level[], lessons: Lesson[]) => Promise<void>;
   deleteCourse: (id: string) => Promise<void>;
+  updateCourseName: (id: string, name: string) => Promise<void>;
+  updateLevelName: (id: string, name: string) => Promise<void>;
+  deleteLevel: (id: string) => Promise<void>;
+  deleteLesson: (id: string) => Promise<void>;
   toggleLessonCompletion: (lesson: Lesson) => Promise<void>;
   startLesson: (lesson: Lesson) => Promise<void>;
 }
@@ -55,7 +59,9 @@ export const useStore = create<AppState>()(
       importCourse: async (course, levels, lessons) => {
         set({ isLoading: true });
         try {
-          await db.addCourse(course);
+          if (course) {
+            await db.addCourse(course);
+          }
           await db.addLevels(levels);
           await db.addLessons(lessons);
           await get().loadCourses();
@@ -69,6 +75,41 @@ export const useStore = create<AppState>()(
         try {
           await db.deleteCourse(id);
           await get().loadCourses();
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      updateCourseName: async (id, name) => {
+        const course = await db.getCourse(id);
+        if (course) {
+          await db.updateCourse({ ...course, name });
+          await get().loadCourses();
+        }
+      },
+
+      updateLevelName: async (id, name) => {
+        const level = await db.getLevel(id);
+        if (level) {
+          await db.updateLevel({ ...level, name });
+          // Note: component subscribing might need to refetch levels. We will use a signal mechanism or just refetch in components if needed, but Zustand manages global state.
+          // Currently `levels` are directly fetched in components.
+        }
+      },
+
+      deleteLevel: async (id) => {
+        set({ isLoading: true });
+        try {
+          await db.deleteLevel(id);
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      deleteLesson: async (id) => {
+        set({ isLoading: true });
+        try {
+          await db.deleteLesson(id);
         } finally {
           set({ isLoading: false });
         }

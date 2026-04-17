@@ -67,35 +67,35 @@ export const Home = () => {
       </div>
 
       {/* Circular Stats Panel (Single Row) */}
-      <div className="flex items-center gap-4 w-full overflow-x-auto pb-2 scrollbar-none snap-x snap-mandatory">
+      <div className="flex items-center justify-between gap-2 w-full pb-2">
         
         {/* Stat 1: Total Courses */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="snap-center shrink-0 w-[140px] h-[140px] bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center p-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex-1 max-w-[110px] aspect-square bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center p-2"
         >
-          <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-1">
-            <BookOpen size={20} />
+          <div className="w-8 h-8 bg-indigo-50 dark:bg-indigo-900/40 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-1">
+            <BookOpen size={16} />
           </div>
-          <div className="text-2xl font-bold text-slate-800 dark:text-white leading-none mb-1">
+          <div className="text-xl font-bold text-slate-800 dark:text-white leading-none mb-1">
             {stats.totalCourses}
           </div>
-          <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t('totalCourses')}</div>
+          <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">{t('totalCourses')}</div>
         </motion.div>
         
         {/* Stat 2: Progress Ring */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="snap-center shrink-0 w-[140px] h-[140px] bg-white dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center relative p-3"
+          className="flex-1 max-w-[110px] aspect-square bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center relative p-2"
         >
-          <svg className="absolute inset-0 w-full h-full -rotate-90">
-            <circle cx="70" cy="70" r="62" fill="none" stroke="currentColor" strokeWidth="6" className="text-slate-100 dark:text-slate-700" />
-            <circle cx="70" cy="70" r="62" fill="none" stroke="currentColor" strokeWidth="6" strokeDasharray={389.5} strokeDashoffset={typeof overallProgress === 'number' ? 389.5 - (389.5 * overallProgress) / 100 : 389.5} className="text-blue-500 transition-all duration-1000" />
+          <svg className="absolute inset-0 w-full h-full -rotate-90 p-2">
+            <circle cx="50%" cy="50%" r="35%" fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-700" />
+            <circle cx="50%" cy="50%" r="35%" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray={100} strokeDashoffset={typeof overallProgress === 'number' ? 100 - overallProgress : 100} className="text-blue-500 transition-all duration-1000" pathLength="100" />
           </svg>
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 leading-none">
+          <div className="text-xl font-bold text-blue-600 dark:text-blue-400 leading-none">
             {overallProgress}%
           </div>
           <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-1">{t('progress')}</div>
@@ -103,18 +103,18 @@ export const Home = () => {
 
         {/* Stat 3: Completed Lessons */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="snap-center shrink-0 w-[140px] h-[140px] bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full shadow-sm flex flex-col items-center justify-center text-center p-3 text-white"
+          className="flex-1 max-w-[110px] aspect-square bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center p-2 text-white"
         >
-          <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mb-1">
-            <Award size={20} />
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mb-1">
+            <Award size={16} />
           </div>
-          <div className="text-2xl font-bold leading-none mb-1">
+          <div className="text-xl font-bold leading-none mb-1">
             {stats.completedLessons}
           </div>
-          <div className="text-xs font-semibold text-blue-100">{t('completedM')}</div>
+          <div className="text-[10px] font-semibold text-blue-100 leading-tight">{t('completedM')}</div>
         </motion.div>
 
       </div>

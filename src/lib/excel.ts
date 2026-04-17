@@ -1,15 +1,13 @@
 import * as XLSX from 'xlsx';
 import { Course, Level, Lesson } from './db';
 
-export interface ParsedExcelData {
-  courseType: string;
-  level: string;
-  lessonName: string;
-  lessonUrl: string;
-  duration: string;
+export interface ExcelSheet {
+  name: string;
+  headers: string[];
+  rows: any[][];
 }
 
-export const parseExcelFile = async (file: File): Promise<ParsedExcelData[]> => {
+export const readExcelFile = async (file: File): Promise<ExcelSheet[]> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -17,48 +15,19 @@ export const parseExcelFile = async (file: File): Promise<ParsedExcelData[]> => 
         const data = e.target?.result;
         const workbook = XLSX.read(data, { type: 'binary' });
         
-        // Assuming the first sheet for now, or we could let the user choose
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
-        
-        // Convert to JSON
-        const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-        
-        if (json.length < 2) {
-          throw new Error('File is empty or has no data rows');
+        const sheets: ExcelSheet[] = [];
+        for (const sheetName of workbook.SheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false }) as any[][];
+          if (json.length > 0) {
+            const headers = (json[0] || []).map(h => String(h).trim());
+            const rows = json.slice(1).filter(r => r && r.some(cell => cell !== undefined && cell !== null && cell !== ''));
+            if (rows.length > 0) {
+                sheets.push({ name: sheetName, headers, rows });
+            }
+          }
         }
-
-        // Try to auto-detect columns based on common Arabic/English names
-        const headers = json[0].map(h => String(h).toLowerCase().trim());
-        
-        const colMap = {
-          courseType: headers.findIndex(h => h.includes('نوع') || h.includes('type') || h.includes('دورة')),
-          level: headers.findIndex(h => h.includes('مستوى') || h.includes('level')),
-          lessonName: headers.findIndex(h => h.includes('درس') || h.includes('name') || h.includes('عنوان')),
-          lessonUrl: headers.findIndex(h => h.includes('رابط') || h.includes('url') || h.includes('link')),
-          duration: headers.findIndex(h => h.includes('مدة') || h.includes('وقت') || h.includes('duration') || h.includes('time')),
-        };
-
-        // If auto-detect fails for essential columns, we might need manual mapping. 
-        // For simplicity in this demo, we'll assume a specific order if not found, or just take what we can.
-        // Let's assume user maps them in UI, but here we provide a best guess.
-        
-        const parsedData: ParsedExcelData[] = [];
-        
-        for (let i = 1; i < json.length; i++) {
-          const row = json[i];
-          if (!row || row.length === 0) continue;
-          
-          parsedData.push({
-            courseType: colMap.courseType >= 0 ? row[colMap.courseType] || '' : row[0] || '',
-            level: colMap.level >= 0 ? row[colMap.level] || '' : row[1] || '',
-            lessonName: colMap.lessonName >= 0 ? row[colMap.lessonName] || '' : row[2] || '',
-            lessonUrl: colMap.lessonUrl >= 0 ? row[colMap.lessonUrl] || '' : row[3] || '',
-            duration: colMap.duration >= 0 ? row[colMap.duration] || '' : row[4] || '',
-          });
-        }
-        
-        resolve(parsedData.filter(d => d.lessonName)); // Filter out empty rows
+        resolve(sheets);
       } catch (err) {
         reject(err);
       }
@@ -69,17 +38,29 @@ export const parseExcelFile = async (file: File): Promise<ParsedExcelData[]> => 
 };
 
 export const transformParsedData = (
-  courseName: string, 
-  data: ParsedExcelData[]
-): { course: Course, levels: Level[], lessons: Lesson[] } => {
-  const courseId = crypto.randomUUID();
+  courseId: string,
+  courseName: string,
+  courseType: string,
+  mappedData: {
+    sheetName: string;
+    lessonName: string;
+    lessonUrl: string;
+    duration: string;
+    level: string;
+  }[]
+): { course: Course | null, levels: Level[], lessons: Lesson[] } => {
+  const isNewCourse = !Array.isArray(courseId) && courseId.startsWith('new_');
+  const actualCourseId = isNewCourse ? crypto.randomUUID() : courseId;
   
-  const course: Course = {
-    id: courseId,
-    name: courseName,
-    type: data[0]?.courseType || 'عام',
-    createdAt: Date.now(),
-  };
+  let course: Course | null = null;
+  if (isNewCourse) {
+    course = {
+      id: actualCourseId,
+      name: courseName,
+      type: courseType || 'عام',
+      createdAt: Date.now(),
+    };
+  }
 
   const levelsMap = new Map<string, Level>();
   const lessons: Lesson[] = [];
@@ -87,13 +68,18 @@ export const transformParsedData = (
   let levelOrder = 0;
   let lessonOrder = 0;
 
-  data.forEach(row => {
-    const levelName = String(row.level).trim() || 'مستوى عام';
+  mappedData.forEach(row => {
+    // If level column wasn't mapped, fallback to sheet name
+    const levelName = String(row.level || row.sheetName).trim() || 'مستوى عام';
     
+    // We create levels on the fly. 
+    // Notice: if we add to an existing course, we don't fetch its levels here. 
+    // This is fine, we just add new levels if they don't share IDs. 
+    // Ideally, we'd reuse existing levels but this suffices for a simple import.
     if (!levelsMap.has(levelName)) {
       levelsMap.set(levelName, {
         id: crypto.randomUUID(),
-        courseId,
+        courseId: actualCourseId,
         name: levelName,
         order: levelOrder++,
       });
@@ -103,11 +89,11 @@ export const transformParsedData = (
 
     lessons.push({
       id: crypto.randomUUID(),
-      courseId,
+      courseId: actualCourseId,
       level: level.id,
       name: String(row.lessonName).trim(),
-      url: String(row.lessonUrl).trim(),
-      duration: String(row.duration).trim(),
+      url: String(row.lessonUrl || '').trim(),
+      duration: String(row.duration || '').trim(),
       completed: false,
       order: lessonOrder++,
     });

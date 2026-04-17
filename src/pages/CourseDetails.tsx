@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, Course, Level, Lesson } from '../lib/db';
 import { useStore } from '../store/useStore';
-import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, Info } from 'lucide-react';
+import { ChevronRight, Lock, CheckCircle2, PlayCircle, Clock, Info, Edit2, Trash2, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation, LanguageCode } from '../lib/i18n';
 
 export const CourseDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toggleLessonCompletion, startLesson, language } = useStore();
+  const { toggleLessonCompletion, startLesson, language, updateLevelName, deleteLevel } = useStore();
   const { t } = useTranslation(language as LanguageCode);
   
   const [course, setCourse] = useState<Course | null>(null);
@@ -17,6 +17,10 @@ export const CourseDetails = () => {
   const [lessonsByLevel, setLessonsByLevel] = useState<Record<string, Lesson[]>>({});
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [editingLevelId, setEditingLevelId] = useState<string | null>(null);
+  const [editLevelName, setEditLevelName] = useState('');
+  const [confirmDeleteLevelId, setConfirmDeleteLevelId] = useState<string | null>(null);
 
   const fetchData = async () => {
     if (!id) return;
@@ -52,6 +56,43 @@ export const CourseDetails = () => {
   useEffect(() => {
     fetchData();
   }, [id]);
+
+  const handleEditLevelClick = (e: React.MouseEvent, level: Level) => {
+    e.stopPropagation();
+    setEditingLevelId(level.id);
+    setEditLevelName(level.name);
+  };
+
+  const saveEditLevel = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (editLevelName.trim()) {
+      await updateLevelName(id, editLevelName.trim());
+      await fetchData();
+    }
+    setEditingLevelId(null);
+  };
+
+  const cancelEditLevel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingLevelId(null);
+  };
+
+  const handleDeleteLevelClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setConfirmDeleteLevelId(id);
+  };
+
+  const confirmDeleteLevel = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    await deleteLevel(id);
+    setConfirmDeleteLevelId(null);
+    await fetchData();
+  };
+
+  const cancelDeleteLevel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmDeleteLevelId(null);
+  };
 
   const handleToggleCompletion = async (lesson: Lesson) => {
     await toggleLessonCompletion(lesson);
@@ -117,8 +158,26 @@ export const CourseDetails = () => {
                   <div className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl ${isLevelUnlocked ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-700'}`}>
                     {isLevelUnlocked ? levelIndex + 1 : <Lock size={20} />}
                   </div>
-                  <div className="text-right">
-                    <h3 className="font-extrabold text-lg sm:text-xl text-slate-800 dark:text-white">{level.name}</h3>
+                  <div className="text-right flex-1">
+                    {editingLevelId === level.id ? (
+                      <div className="flex items-center gap-2 mb-1" onClick={(e) => e.stopPropagation()}>
+                        <input 
+                          type="text" 
+                          value={editLevelName}
+                          onChange={(e) => setEditLevelName(e.target.value)}
+                          className="flex-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-sm outline-none"
+                          autoFocus
+                        />
+                        <button onClick={(e) => saveEditLevel(e, level.id)} className="p-1.5 bg-green-100 text-green-600 rounded hover:bg-green-200">
+                          <Check size={16} />
+                        </button>
+                        <button onClick={cancelEditLevel} className="p-1.5 bg-slate-100 text-slate-600 rounded hover:bg-slate-200">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <h3 className="font-extrabold text-lg sm:text-xl text-slate-800 dark:text-white">{level.name}</h3>
+                    )}
                     <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
                        <span className="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
                       {t('lessonsCompleted', { completed: completedInLevel, total: levelLessons.length })}
@@ -128,7 +187,36 @@ export const CourseDetails = () => {
                 {isLevelUnlocked && (
                   <div className="flex items-center gap-4">
                     <div className="hidden sm:block text-sm font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-lg">{t('levelCompleted', { progress: levelProgress })}</div>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${isExpanded ? '-rotate-90 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : (language === 'ar' ? 'rotate-180' : '')}`}>
+                    
+                    {!editingLevelId && (
+                       <div className="hidden sm:flex gap-1">
+                          <button 
+                            onClick={(e) => handleEditLevelClick(e, level)}
+                            className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          {confirmDeleteLevelId === level.id ? (
+                             <div className="flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-2 rounded-full absolute left-4 z-10" onClick={(e) => e.stopPropagation()}>
+                                <span className="text-xs text-red-600 font-bold px-1">حذف؟</span>
+                                <button onClick={(e) => confirmDeleteLevel(e, level.id)} className="p-1 text-red-600 hover:bg-red-100 rounded-full">
+                                  <Check size={14} />
+                                </button>
+                                <button onClick={cancelDeleteLevel} className="p-1 text-slate-500 hover:bg-slate-200 rounded-full">
+                                  <X size={14} />
+                                </button>
+                             </div>
+                          ) : (
+                             <button 
+                               onClick={(e) => handleDeleteLevelClick(e, level.id)}
+                               className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"
+                             >
+                               <Trash2 size={16} />
+                             </button>
+                          )}
+                       </div>
+                    )}
+                    <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${isExpanded ? '-rotate-90 bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : (language === 'ar' ? 'rotate-180' : '')}`}>
                       <ChevronRight size={20} />
                     </div>
                   </div>
