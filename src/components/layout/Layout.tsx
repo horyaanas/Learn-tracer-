@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, BookOpen, Plus, Settings, LogOut } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ImportModal } from '../course/ImportModal';
 import { useTranslation, LanguageCode } from '../../lib/i18n';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,6 +51,7 @@ export const Layout = () => {
   const navigate = useNavigate();
   const { theme, language, fontSize } = useStore();
   const { t } = useTranslation(language as LanguageCode);
+  const isExitingRef = useRef(false);
 
   const isRtl = language === 'ar';
 
@@ -71,6 +72,8 @@ export const Layout = () => {
     }
 
     const handlePopState = (e: PopStateEvent) => {
+      if (isExitingRef.current) return;
+
       if (isHome) {
         // Prevent default exit behaviour and show our beautiful modal
         window.history.pushState({ appRootDummy: true }, '', location.pathname);
@@ -86,10 +89,22 @@ export const Layout = () => {
   }, [location.pathname, navigate]);
 
   const confirmExit = () => {
-    window.history.go(-2);
+    isExitingRef.current = true;
+    setShowExitModal(false);
+    
+    // Give modal time to close visually 
     setTimeout(() => {
+      // For standard web, go back past our dummy state to exit
+      window.history.go(-2);
+      
+      // Fallback for PWAs and certain mobile browsers
       window.close();
-    }, 100);
+      
+      // Fallback for Cordova/Capacitor webviews if applicable
+      if ((navigator as any).app && (navigator as any).app.exitApp) {
+        (navigator as any).app.exitApp();
+      }
+    }, 50);
   };
 
   return (
